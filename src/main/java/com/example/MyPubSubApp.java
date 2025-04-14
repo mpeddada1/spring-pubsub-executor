@@ -1,6 +1,7 @@
 package com.example;
 
 import com.google.api.gax.core.ExecutorProvider;
+import com.google.api.gax.core.FixedExecutorProvider;
 import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
@@ -25,7 +26,11 @@ public class MyPubSubApp {
 
   @Bean(name="subscriberExecutorProvider")
   public ExecutorProvider virtualThreadExecutorProvider() {
-    return () -> Executors.newVirtualThreadPerTaskExecutor();
+    // 1. () -> Executors.newVirtualThreadPerTaskExecutor() results in a compilation issue.
+    // 2. Doing FixedExecutorProvider#create doesn't work because it accepts a SchedulingExecutorService instead of
+    // ExecutorService which is what Executors.newVirtualThreadPerTaskExecutor() returns.
+    // 3. Customizing thread factory for InstantiatingExecutorProvider sets executorCount to 24. VTs generally should not be pooled/limited.
+    return InstantiatingExecutorProvider.newBuilder().setThreadFactory(Thread.ofVirtual().factory()).build();
   }
 
   @Bean
