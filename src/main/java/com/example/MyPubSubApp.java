@@ -1,5 +1,7 @@
 package com.example;
 
+import com.google.api.gax.core.ExecutorProvider;
+import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import org.springframework.boot.CommandLineRunner;
@@ -21,6 +23,10 @@ public class MyPubSubApp {
     return Executors.newVirtualThreadPerTaskExecutor();
   }
 
+  @Bean(name="subscriberExecutorProvider")
+  public ExecutorProvider virtualThreadExecutorProvider() {
+    return () -> Executors.newVirtualThreadPerTaskExecutor();
+  }
 
   @Bean
   public CommandLineRunner commandLineRunner(PubSubTemplate pubSubTemplate) {
